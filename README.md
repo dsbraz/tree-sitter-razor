@@ -15,20 +15,6 @@
 
 This grammar is used by the [zed-razor](https://github.com/dsbraz/zed-razor) extension. Install it from the Zed extension marketplace.
 
-### With Neovim (nvim-treesitter)
-
-```lua
-local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
-parser_config.razor = {
-  install_info = {
-    url = "https://github.com/dsbraz/tree-sitter-razor",
-    files = { "src/parser.c", "src/scanner.c" },
-    branch = "main",
-  },
-  filetype = "razor",
-}
-```
-
 ### Standalone
 
 ```bash
