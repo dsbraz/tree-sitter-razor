@@ -1,0 +1,176 @@
+================================================================================
+Braces are plain text inside an element
+================================================================================
+
+<p>{ literal }</p>
+
+--------------------------------------------------------------------------------
+
+(document
+  (html_element
+    (html_start_tag
+      name: (tag_name))
+    (text_content)
+    (html_end_tag
+      name: (tag_name))))
+
+================================================================================
+Style block with CSS braces
+================================================================================
+
+<style>
+    .list { margin: 0; }
+    .item { color: red; }
+</style>
+
+--------------------------------------------------------------------------------
+
+(document
+  (html_element
+    (html_start_tag
+      name: (tag_name))
+    (text_content)
+    (html_end_tag
+      name: (tag_name))))
+
+================================================================================
+Script block with JavaScript braces
+================================================================================
+
+<script>
+    function total() { return 1; }
+</script>
+
+--------------------------------------------------------------------------------
+
+(document
+  (html_element
+    (html_start_tag
+      name: (tag_name))
+    (text_content)
+    (html_end_tag
+      name: (tag_name))))
+
+================================================================================
+Script block holding JSON
+================================================================================
+
+<script type="application/json">{"a":1}</script>
+
+--------------------------------------------------------------------------------
+
+(document
+  (html_element
+    (html_start_tag
+      name: (tag_name)
+      (html_attribute
+        name: (attribute_name)
+        value: (quoted_attribute_value
+          (attribute_value_content))))
+    (text_content)
+    (html_end_tag
+      name: (tag_name))))
+
+================================================================================
+Braces next to a Razor expression
+================================================================================
+
+<p>{ @name }</p>
+
+--------------------------------------------------------------------------------
+
+(document
+  (html_element
+    (html_start_tag
+      name: (tag_name))
+    (text_content)
+    (implicit_expression
+      (implicit_expression_content))
+    (text_content)
+    (html_end_tag
+      name: (tag_name))))
+
+================================================================================
+Closing brace of an if block still closes the block
+================================================================================
+
+@if (show)
+{
+    <p>hi</p>
+}
+
+<p>after</p>
+
+--------------------------------------------------------------------------------
+
+(document
+  (razor_if
+    (csharp_expression)
+    (html_element
+      (html_start_tag
+        name: (tag_name))
+      (text_content)
+      (html_end_tag
+        name: (tag_name))))
+  (html_element
+    (html_start_tag
+      name: (tag_name))
+    (text_content)
+    (html_end_tag
+      name: (tag_name))))
+
+================================================================================
+Braces in an element inside an if block
+================================================================================
+
+@if (show)
+{
+    <p>{ a }</p>
+}
+
+--------------------------------------------------------------------------------
+
+(document
+  (razor_if
+    (csharp_expression)
+    (html_element
+      (html_start_tag
+        name: (tag_name))
+      (text_content)
+      (html_end_tag
+        name: (tag_name)))))
+
+================================================================================
+Escaped at sign in element text
+================================================================================
+
+<p>user@@example.com</p>
+
+--------------------------------------------------------------------------------
+
+(document
+  (html_element
+    (html_start_tag
+      name: (tag_name))
+    (text_content)
+    (razor_escaped_at)
+    (text_content)
+    (html_end_tag
+      name: (tag_name))))
+
+================================================================================
+Single line of text with at-colon in a loop body
+================================================================================
+
+@foreach (var item in items)
+{
+    @:Row text
+}
+
+--------------------------------------------------------------------------------
+
+(document
+  (razor_foreach
+    (csharp_expression)
+    (razor_text_line
+      (text_content))))

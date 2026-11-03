@@ -11,6 +11,8 @@ enum TokenType {
   HTML_TEXT,
   RAZOR_COMMENT_CONTENT,
   CSHARP_STATEMENT,
+  ELEMENT_TEXT,
+  LINE_TEXT,
 };
 
 // Scanner state for serialization
@@ -743,6 +745,57 @@ static bool scan_html_text(TSLexer *lexer) {
   return has_content;
 }
 
+// Text directly inside an HTML element (for example the children of <p>, <style> or
+// <script>). Unlike scan_html_text, braces are ordinary characters here: a `}` only
+// closes a Razor block when it sits directly in that block's body, and inside an open
+// element it is just text. That lets CSS, JavaScript, JSON and prose containing `{`
+// and `}` parse. It still stops at `<` (a tag) and at `@` (an expression, a comment,
+// or the `@@` escape), which the grammar handles.
+static bool scan_element_text(TSLexer *lexer) {
+  bool has_content = false;
+
+  // Leading whitespace belongs to tree-sitter's extras, not to the text.
+  while (lexer->lookahead == ' ' || lexer->lookahead == '\t' ||
+         lexer->lookahead == '\n' || lexer->lookahead == '\r') {
+    lexer->advance(lexer, true);
+  }
+
+  if (lexer->lookahead == 0 || lexer->lookahead == '@' || lexer->lookahead == '<') {
+    return false;
+  }
+
+  while (lexer->lookahead != 0 && lexer->lookahead != '@' && lexer->lookahead != '<') {
+    advance(lexer);
+    has_content = true;
+  }
+
+  lexer->mark_end(lexer);
+  return has_content;
+}
+
+// The rest of the current line after `@:` (a single line of markup inside a code
+// block). Braces and everything else are text; only the end of the line stops it.
+// A line break before any text means there is nothing here.
+static bool scan_line_text(TSLexer *lexer) {
+  bool has_content = false;
+
+  while (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
+    lexer->advance(lexer, true);
+  }
+
+  if (lexer->lookahead == 0 || lexer->lookahead == '\n' || lexer->lookahead == '\r') {
+    return false;
+  }
+
+  while (lexer->lookahead != 0 && lexer->lookahead != '\n' && lexer->lookahead != '\r') {
+    advance(lexer);
+    has_content = true;
+  }
+
+  lexer->mark_end(lexer);
+  return has_content;
+}
+
 // Scan razor comment content until *@
 static bool scan_razor_comment_content(TSLexer *lexer) {
   bool has_content = false;
@@ -805,6 +858,19 @@ bool tree_sitter_razor_external_scanner_scan(
 ) {
   (void)payload;
 
+  // LINE_TEXT: the rest of the line after `@:`. Only that token is valid there, so
+  // it is taken only when no other token is (error recovery marks every token valid).
+  if (valid_symbols[LINE_TEXT] && !valid_symbols[CSHARP_STATEMENT] &&
+      !valid_symbols[HTML_TEXT] && !valid_symbols[ELEMENT_TEXT] &&
+      !valid_symbols[CSHARP_CODE] && !valid_symbols[CSHARP_EXPRESSION] &&
+      !valid_symbols[IMPLICIT_EXPRESSION_CONTENT] && !valid_symbols[RAZOR_COMMENT_CONTENT]) {
+    if (scan_line_text(lexer)) {
+      lexer->result_symbol = LINE_TEXT;
+      return true;
+    }
+    return false;
+  }
+
   // CSHARP_STATEMENT: scan a C# statement in template context (before HTML_TEXT)
   if (valid_symbols[CSHARP_STATEMENT]) {
     skip_ws(lexer);
@@ -825,6 +891,17 @@ bool tree_sitter_razor_external_scanner_scan(
       !valid_symbols[CSHARP_EXPRESSION] && !valid_symbols[IMPLICIT_EXPRESSION_CONTENT]) {
     if (scan_html_text(lexer)) {
       lexer->result_symbol = HTML_TEXT;
+      return true;
+    }
+    return false;
+  }
+
+  // ELEMENT_TEXT: text inside an element, where braces are ordinary characters
+  if (valid_symbols[ELEMENT_TEXT] && !valid_symbols[HTML_TEXT] &&
+      !valid_symbols[CSHARP_STATEMENT] && !valid_symbols[CSHARP_CODE] &&
+      !valid_symbols[CSHARP_EXPRESSION] && !valid_symbols[IMPLICIT_EXPRESSION_CONTENT]) {
+    if (scan_element_text(lexer)) {
+      lexer->result_symbol = ELEMENT_TEXT;
       return true;
     }
     return false;

@@ -67,7 +67,81 @@
         },
         {
           "type": "SYMBOL",
+          "name": "razor_escaped_at"
+        },
+        {
+          "type": "SYMBOL",
           "name": "text_content"
+        }
+      ]
+    },
+    "_element_node": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "directive"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "code_block"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "functions_block"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "section_block"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "razor_anonymous_block"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "control_structure"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "explicit_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "implicit_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "razor_comment"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "html_comment"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "html_element"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "html_self_closing_element"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "html_void_element"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "razor_escaped_at"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_element_text"
+          },
+          "named": true,
+          "value": "text_content"
         }
       ]
     },
@@ -128,11 +202,41 @@
         },
         {
           "type": "SYMBOL",
+          "name": "razor_escaped_at"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "razor_text_line"
+        },
+        {
+          "type": "SYMBOL",
           "name": "text_content"
         },
         {
           "type": "SYMBOL",
           "name": "razor_cs_statement"
+        }
+      ]
+    },
+    "razor_escaped_at": {
+      "type": "STRING",
+      "value": "@@"
+    },
+    "razor_text_line": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "@:"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_line_text"
+          },
+          "named": true,
+          "value": "text_content"
         }
       ]
     },
@@ -1241,7 +1345,7 @@
           "type": "REPEAT",
           "content": {
             "type": "SYMBOL",
-            "name": "_node"
+            "name": "_element_node"
           }
         },
         {
@@ -1556,8 +1660,13 @@
                 "type": "CHOICE",
                 "members": [
                   {
-                    "type": "SYMBOL",
-                    "name": "attribute_value_content"
+                    "type": "ALIAS",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "_double_quoted_value"
+                    },
+                    "named": true,
+                    "value": "attribute_value_content"
                   },
                   {
                     "type": "SYMBOL",
@@ -1589,8 +1698,13 @@
                 "type": "CHOICE",
                 "members": [
                   {
-                    "type": "SYMBOL",
-                    "name": "attribute_value_content"
+                    "type": "ALIAS",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "_single_quoted_value"
+                    },
+                    "named": true,
+                    "value": "attribute_value_content"
                   },
                   {
                     "type": "SYMBOL",
@@ -1611,9 +1725,13 @@
         }
       ]
     },
-    "attribute_value_content": {
+    "_double_quoted_value": {
       "type": "PATTERN",
-      "value": "[^\"'@]+"
+      "value": "[^\"@]+"
+    },
+    "_single_quoted_value": {
+      "type": "PATTERN",
+      "value": "[^'@]+"
     },
     "expression_attribute_value": {
       "type": "SEQ",
@@ -1734,6 +1852,14 @@
     {
       "type": "SYMBOL",
       "name": "csharp_statement"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_element_text"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_line_text"
     }
   ],
   "inline": [],

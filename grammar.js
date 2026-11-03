@@ -17,6 +17,8 @@ module.exports = grammar({
     $._html_text,
     $._razor_comment_content,
     $.csharp_statement,
+    $._element_text,
+    $._line_text,
   ],
 
   extras: _ => [/\s/],
@@ -47,7 +49,29 @@ module.exports = grammar({
       $.html_element,
       $.html_self_closing_element,
       $.html_void_element,
+      $.razor_escaped_at,
       $.text_content,
+    ),
+
+    // What can sit directly inside an HTML element: the same as _node, except that its
+    // text may contain braces (see scan_element_text in src/scanner.c). It is still a
+    // text_content node, so queries do not change.
+    _element_node: $ => choice(
+      $.directive,
+      $.code_block,
+      $.functions_block,
+      $.section_block,
+      $.razor_anonymous_block,
+      $.control_structure,
+      $.explicit_expression,
+      $.implicit_expression,
+      $.razor_comment,
+      $.html_comment,
+      $.html_element,
+      $.html_self_closing_element,
+      $.html_void_element,
+      $.razor_escaped_at,
+      alias($._element_text, $.text_content),
     ),
 
     // Like _node but also allows bare C# statements (for control structure bodies)
@@ -65,8 +89,20 @@ module.exports = grammar({
       $.html_element,
       $.html_self_closing_element,
       $.html_void_element,
+      $.razor_escaped_at,
+      $.razor_text_line,
       $.text_content,
       $.razor_cs_statement,
+    ),
+
+    // `@@` is a literal at sign
+    razor_escaped_at: _ => '@@',
+
+    // `@:` starts a single line of markup inside a code block. For now the whole rest
+    // of the line is text; an expression inside it is not parsed separately.
+    razor_text_line: $ => seq(
+      '@:',
+      alias($._line_text, $.text_content),
     ),
 
     // C# statement in a template (control structure body) context
@@ -313,7 +349,7 @@ module.exports = grammar({
     // =========================================================================
     html_element: $ => seq(
       $.html_start_tag,
-      repeat($._node),
+      repeat($._element_node),
       $.html_end_tag,
     ),
 
@@ -379,12 +415,16 @@ module.exports = grammar({
     ),
 
     quoted_attribute_value: $ => choice(
-      seq('"', repeat(choice($.attribute_value_content, $.implicit_expression, $.explicit_expression)), '"'),
-      seq("'", repeat(choice($.attribute_value_content, $.implicit_expression, $.explicit_expression)), "'"),
+      seq('"', repeat(choice(alias($._double_quoted_value, $.attribute_value_content), $.implicit_expression, $.explicit_expression)), '"'),
+      seq("'", repeat(choice(alias($._single_quoted_value, $.attribute_value_content), $.implicit_expression, $.explicit_expression)), "'"),
     ),
 
-    // Stop at @, " and ' so Razor expressions can be parsed within attribute values
-    attribute_value_content: _ => /[^"'@]+/,
+    // A value stops at @ (so Razor expressions can be parsed inside it) and at its own
+    // closing quote only. The other kind of quote is ordinary text: that is what lets
+    // onclick="showTab('one')" and data-text='say "hi"' parse. Both are
+    // attribute_value_content nodes, so queries are unaffected.
+    _double_quoted_value: _ => /[^"@]+/,
+    _single_quoted_value: _ => /[^'@]+/,
 
     expression_attribute_value: $ => seq(
       '@(',
