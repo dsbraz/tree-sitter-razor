@@ -1,0 +1,133 @@
+================================================================================
+Single quotes inside a double-quoted attribute value
+================================================================================
+
+<a onclick="showTab('roles')">Roles</a>
+
+--------------------------------------------------------------------------------
+
+(document
+  (html_element
+    (html_start_tag
+      name: (tag_name)
+      (html_attribute
+        name: (attribute_name)
+        value: (quoted_attribute_value
+          (attribute_value_content))))
+    (text_content)
+    (html_end_tag
+      name: (tag_name))))
+
+================================================================================
+Double quotes inside a single-quoted attribute value
+================================================================================
+
+<div data-text='say "hi"'></div>
+
+--------------------------------------------------------------------------------
+
+(document
+  (html_element
+    (html_start_tag
+      name: (tag_name)
+      (html_attribute
+        name: (attribute_name)
+        value: (quoted_attribute_value
+          (attribute_value_content))))
+    (html_end_tag
+      name: (tag_name))))
+
+================================================================================
+Razor expression inside a quoted JavaScript argument
+================================================================================
+
+<a onclick="openItem('@item.Id')">Open</a>
+
+--------------------------------------------------------------------------------
+
+(document
+  (html_element
+    (html_start_tag
+      name: (tag_name)
+      (html_attribute
+        name: (attribute_name)
+        value: (quoted_attribute_value
+          (attribute_value_content)
+          (implicit_expression
+            (implicit_expression_content))
+          (attribute_value_content))))
+    (text_content)
+    (html_end_tag
+      name: (tag_name))))
+
+================================================================================
+Several attributes with inline handlers
+================================================================================
+
+<a class="tab" id="tab-one" onclick="showTab('one')">One</a>
+<a class="tab" id="tab-two" onclick="showTab('two')">Two</a>
+
+--------------------------------------------------------------------------------
+
+(document
+  (html_element
+    (html_start_tag
+      name: (tag_name)
+      (html_attribute
+        name: (attribute_name)
+        value: (quoted_attribute_value
+          (attribute_value_content)))
+      (html_attribute
+        name: (attribute_name)
+        value: (quoted_attribute_value
+          (attribute_value_content)))
+      (html_attribute
+        name: (attribute_name)
+        value: (quoted_attribute_value
+          (attribute_value_content))))
+    (text_content)
+    (html_end_tag
+      name: (tag_name)))
+  (html_element
+    (html_start_tag
+      name: (tag_name)
+      (html_attribute
+        name: (attribute_name)
+        value: (quoted_attribute_value
+          (attribute_value_content)))
+      (html_attribute
+        name: (attribute_name)
+        value: (quoted_attribute_value
+          (attribute_value_content)))
+      (html_attribute
+        name: (attribute_name)
+        value: (quoted_attribute_value
+          (attribute_value_content))))
+    (text_content)
+    (html_end_tag
+      name: (tag_name))))
+
+================================================================================
+Handler attribute inside a loop body
+================================================================================
+
+@foreach (var user in users)
+{
+    <button onclick="edit('x')">Edit</button>
+}
+
+--------------------------------------------------------------------------------
+
+(document
+  (razor_foreach
+    (csharp_expression)
+    (html_element
+      (html_start_tag
+        name: (tag_name)
+        (html_attribute
+          name: (attribute_name)
+          value: (quoted_attribute_value
+            (attribute_value_content))))
+      (text_content)
+      (html_end_tag
+        name: (tag_name)))))

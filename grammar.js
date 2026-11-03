@@ -415,12 +415,16 @@ module.exports = grammar({
     ),
 
     quoted_attribute_value: $ => choice(
-      seq('"', repeat(choice($.attribute_value_content, $.implicit_expression, $.explicit_expression)), '"'),
-      seq("'", repeat(choice($.attribute_value_content, $.implicit_expression, $.explicit_expression)), "'"),
+      seq('"', repeat(choice(alias($._double_quoted_value, $.attribute_value_content), $.implicit_expression, $.explicit_expression)), '"'),
+      seq("'", repeat(choice(alias($._single_quoted_value, $.attribute_value_content), $.implicit_expression, $.explicit_expression)), "'"),
     ),
 
-    // Stop at @, " and ' so Razor expressions can be parsed within attribute values
-    attribute_value_content: _ => /[^"'@]+/,
+    // A value stops at @ (so Razor expressions can be parsed inside it) and at its own
+    // closing quote only. The other kind of quote is ordinary text: that is what lets
+    // onclick="showTab('one')" and data-text='say "hi"' parse. Both are
+    // attribute_value_content nodes, so queries are unaffected.
+    _double_quoted_value: _ => /[^"@]+/,
+    _single_quoted_value: _ => /[^'@]+/,
 
     expression_attribute_value: $ => seq(
       '@(',
